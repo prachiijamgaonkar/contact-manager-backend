@@ -1,14 +1,12 @@
-# Use an official OpenJDK 21 runtime as a base image
-FROM eclipse-temurin:21-jdk
-
-# Set the working directory inside the container
+# Use Maven to build the application inside Docker
+FROM maven:3.8.5-openjdk-21 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the built JAR file into the container
-COPY target/*.jar app.jar
-
-# Expose the application port (default for Spring Boot is 8080)
+# Use OpenJDK to run the application
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8081
-
-# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
